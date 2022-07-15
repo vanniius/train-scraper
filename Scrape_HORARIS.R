@@ -7,9 +7,9 @@ require(xml2)
 require(RMariaDB)
 
 # Basic parameters
-source("Secrets.R")
+setwd("/Users/ivans/Desktop/DS/R Projects/Rodalies")
 
-setwd(wd)
+source("Secrets.R")
 url_base <- url_scrape_train
 
 # Obtain today's schedule

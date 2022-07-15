@@ -6,7 +6,7 @@ require(xml2)
 require(RMariaDB)
 
 # Basic parameters
-setwd(wd)
+setwd("/Users/ivans/Desktop/DS/R Projects/Rodalies")
 
 source("Secrets.R")
 url_base <- url_scrape_train
