@@ -7,8 +7,8 @@ on:
     branches: main
     
 env:
-  url_scrape_station: ${{ secrets.URL_DEPARTURES }}
-  url_scrape_schedules: ${{ secrets.URL_SCHEDULES }}
+  URL_DEPARTURES: ${{ secrets.URL_DEPARTURES }}
+  URL_SCHEDULES: ${{ secrets.URL_SCHEDULES }}
 
 jobs:
   autoscrape:
