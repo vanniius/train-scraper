@@ -11,8 +11,8 @@ require(lubridate)
 
 #source("Secrets.R")
 
-url_departures <- url_scrape_station
-url_schedules  <- url_scrape_schedules
+url_departures <- paste0(Sys.getenv("URL_DEPARTURES"))
+url_schedules  <- paste0(Sys.getenv("URL_SCHEDULES"))
 
 ### Stations to track
 stations <- c(79312, 79309, 79303, 79300, 79202, 79607, 79605, 79602, 79502, 79412, 79406, 71801, 79103, 79007, 79009, 71707, 
@@ -175,7 +175,7 @@ train_tracking %>%
   full_join(train_schedules, by = c("tech_id", "stop_name" = "schedule_stop_name")) %>% 
   select(line, tech_id, stop_name, stop_delay, schedule_stop_departure_time, timestamp) -> train_data
 
-write_csv(train_data, "data/train_consolidated_data.csv", append = TRUE)
-write_csv(train_tracking, "data/train_tracking_data.csv", append = TRUE)
-write_csv(train_schedules, "data/train_schedules_data.csv", append = TRUE)
+write_csv(train_data, "data/train_consolidated_data.csv", append = TRUE, col_names = TRUE)
+write_csv(train_tracking, "data/train_tracking_data.csv", append = TRUE, col_names = TRUE)
+write_csv(train_schedules, "data/train_schedules_data.csv", append = TRUE, col_names = TRUE)
 
