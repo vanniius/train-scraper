@@ -4,13 +4,8 @@ require(rvest)
 require(httr)
 require(xml2)
 require(lubridate)
-#require(RMariaDB)
 
 ### Basic parameters
-#setwd("/Users/ivans/Desktop/DS/R Projects/Rodalies")
-
-#source("Secrets.R")
-
 url_departures <- paste0(Sys.getenv("URL_DEPARTURES"))
 url_schedules  <- paste0(Sys.getenv("URL_SCHEDULES"))
 
@@ -174,6 +169,7 @@ train_tracking %>%
   ungroup(tech_id, stop_code) %>% 
   full_join(train_schedules, by = c("tech_id", "stop_name" = "schedule_stop_name")) %>% 
   select(line, tech_id, stop_name, stop_delay, schedule_stop_departure_time, timestamp) -> train_data
+
 
 write_csv(train_data, "data/train_consolidated_data.csv", append = TRUE, col_names = TRUE)
 write_csv(train_tracking, "data/train_tracking_data.csv", append = TRUE, col_names = TRUE)
