@@ -14,6 +14,9 @@ require(lubridate)
 url_departures <- Sys.getenv("URL_DEPARTURES")
 url_schedules  <- Sys.getenv("URL_SCHEDULES")
 
+print(url_departures)
+print(url_schedules)
+
 ### Stations to track
 stations <- c(79312, 79309, 79303, 79300, 79202, 79607, 79605, 79602, 79502, 79412, 79406, 71801, 79103, 79007, 79009, 71707, 
               71706, 71701, 71601, 77309, 77306, 77113, 77105, 77005, 78801, 78604, 78710, 78706, 72301, 72211, 72201, 71401, 
