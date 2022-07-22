@@ -7,9 +7,9 @@ require(lubridate)
 #require(RMariaDB)
 
 ### Basic parameters
-setwd("/Users/ivans/Desktop/DS/R Projects/Rodalies")
+#setwd("/Users/ivans/Desktop/DS/R Projects/Rodalies")
 
-source("Secrets.R")
+#source("Secrets.R")
 
 url_departures <- url_scrape_station
 url_schedules  <- url_scrape_schedules
