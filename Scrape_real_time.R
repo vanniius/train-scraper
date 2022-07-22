@@ -4,7 +4,7 @@ require(rvest)
 require(httr)
 require(xml2)
 require(lubridate)
-require(RMariaDB)
+#require(RMariaDB)
 
 ### Basic parameters
 setwd("/Users/ivans/Desktop/DS/R Projects/Rodalies")
@@ -77,7 +77,7 @@ train_schedules <-
   )
 
 ### Execution time, in minutes
-period <- 60
+period <- 15
 tm <- Sys.time()
 
 ### Real time train scraper
@@ -174,4 +174,8 @@ train_tracking %>%
   ungroup(tech_id, stop_code) %>% 
   full_join(train_schedules, by = c("tech_id", "stop_name" = "schedule_stop_name")) %>% 
   select(line, tech_id, stop_name, stop_delay, schedule_stop_departure_time, timestamp) -> train_data
+
+write_csv(train_data, "data/train_consolidated_data.csv", append = TRUE)
+write_csv(train_tracking, "data/train_tracking_data.csv", append = TRUE)
+write_csv(train_schedules, "data/train_schedules_data.csv", append = TRUE)
 
