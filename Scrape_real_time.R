@@ -11,8 +11,8 @@ require(lubridate)
 
 #source("Secrets.R")
 
-print(url_departures)
-print(url_schedules)
+url_departures <- paste0(Sys.getenv("URL_DEPARTURES"))
+url_schedules  <- paste0(Sys.getenv("URL_SCHEDULES"))
 
 ### Stations to track
 stations <- c(79312, 79309, 79303, 79300, 79202, 79607, 79605, 79602, 79502, 79412, 79406, 71801, 79103, 79007, 79009, 71707, 
