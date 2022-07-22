@@ -2,13 +2,9 @@
 name: train_tracking
 
 # Controls when the action will run.
-on:
-  push:
-    branches: main
-    
-env:
-  URL_DEPARTURES: ${{ secrets.URL_DEPARTURES }}
-  URL_SCHEDULES: ${{ secrets.URL_SCHEDULES }}
+#on:
+  #push:
+    #branches: main
 
 jobs:
   autoscrape:
@@ -30,10 +26,12 @@ jobs:
         R -e 'install.packages("lubridate")'
     # Run R script
     - name: Scrape trains
-      run: |
-        URL_DEPARTURES = Sys.getenv("URL_DEPARTURES")
-        URL_SCHEDULES = Sys.getenv("URL_SCHEDULES")
-        Rscript Scrape_real_time.R
+    
+      env: 
+        URL_DEPARTURES: ${{ secrets.URL_DEPARTURES }}
+        URL_SCHEDULES: ${{ secrets.URL_SCHEDULES }}
+        
+      run: Rscript Scrape_real_time.R
 
     # Add new files in data folder, commit along with other modified files, push
     - name: Commit files
