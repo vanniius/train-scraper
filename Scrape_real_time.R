@@ -11,8 +11,8 @@ require(lubridate)
 
 #source("Secrets.R")
 
-url_departures <- url_scrape_station
-url_schedules  <- url_scrape_schedules
+url_departures <- ${{secrets.URL_DEPARTURES}}
+url_schedules  <- ${{secrets.URL_SCHEDULES}}
 
 ### Stations to track
 stations <- c(79312, 79309, 79303, 79300, 79202, 79607, 79605, 79602, 79502, 79412, 79406, 71801, 79103, 79007, 79009, 71707, 
