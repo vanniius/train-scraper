@@ -11,9 +11,6 @@ require(lubridate)
 
 #source("Secrets.R")
 
-url_departures <- paste0(URL_DEPARTURES)
-url_schedules  <- paste0(URL_SCHEDULES)
-
 print(url_departures)
 print(url_schedules)
 
