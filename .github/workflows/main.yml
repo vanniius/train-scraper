@@ -2,9 +2,13 @@
 name: train_tracking
 
 # Controls when the action will run.
-#on:
-  #push:
-    #branches: main
+on:
+  push:
+    branches: main
+    
+env:
+  url_scrape_station: ${{ secrets.URL_DEPARTURES }}
+  url_scrape_schedules: ${{ secrets.URL_SCHEDULES }}
 
 jobs:
   autoscrape:
@@ -39,5 +43,3 @@ jobs:
       env:
         REPO_KEY: ${{secrets.GITHUB_TOKEN}}
         username: github-actions
-        url_scrape_station: "http://rodalies_serveis.gencat.cat/gencat_rodalies_serveis/AppJava/restServices/getDepartures?numestacio=%d"
-        url_scrape_schedules: "http://rodalies_serveis.gencat.cat/gencat_rodalies_serveis/AppJava/restServices/getTrainInfo?numtren=%s"
