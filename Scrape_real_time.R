@@ -11,8 +11,8 @@ require(lubridate)
 
 #source("Secrets.R")
 
-url_departures <- Sys.getenv("URL_DEPARTURES")
-url_schedules  <- Sys.getenv("URL_SCHEDULES")
+url_departures <- "http://rodalies_serveis.gencat.cat/gencat_rodalies_serveis/AppJava/restServices/getDepartures?numestacio=%d"
+url_schedules  <- "http://rodalies_serveis.gencat.cat/gencat_rodalies_serveis/AppJava/restServices/getTrainInfo?numtren=%s"
 
 print(url_departures)
 print(url_schedules)
