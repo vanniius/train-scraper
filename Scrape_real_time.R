@@ -4,10 +4,11 @@ require(rvest)
 require(httr)
 require(xml2)
 require(lubridate)
+require(RPostgres)
 
 ### Basic parameters
-url_departures <- paste0(Sys.getenv("URL_DEPARTURES"))
-url_schedules  <- paste0(Sys.getenv("URL_SCHEDULES"))
+url_departures <- Sys.getenv("URL_DEPARTURES")
+url_schedules  <- Sys.getenv("URL_SCHEDULES")
 
 ### Stations to track
 stations <- c(79312, 79309, 79303, 79300, 79202, 79607, 79605, 79602, 79502, 79412, 79406, 71801, 79103, 79007, 79009, 71707, 
@@ -144,7 +145,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
       mutate_all(na_if, "") %>% 
       drop_na(tech_id) -> schedule_tracking
     
-    # Addign new retrieved schedules to the registry
+    # Adding new retrieved schedules to the registry
     
     if(length(schedule_tracking$tech_id > 1)) {
       
@@ -154,24 +155,23 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     
   }
   
+  ### Write data to DB
+  
+  con <- dbConnect(RPostgres::Postgres(),
+                   dbname = Sys.getenv("TRAIN_DBNAME"),
+                   host = Sys.getenv("TRAIN_HOST"), 
+                   port = Sys.getenv("TRAIN_PORT"),
+                   user = Sys.getenv("TRAIN_USER"), 
+                   password = Sys.getenv("TRAIN_PWD"))
+  
+  dbWriteTable(con, name = "train_tracking", value = train_tracking, append = TRUE, row.names = FALSE)
+  dbWriteTable(con, name = "train_schedules", value = train_schedules, append = TRUE, row.names = FALSE)
+  
+  dbDisconnect(con)
+  
   print(paste0("End: ", format(Sys.time(), "%H:%M:%S")))
   
   Sys.sleep(240)
   
 }
-
-### Consolidate data
-train_tracking %>% 
-  select(tech_id, stop_code, stop_name, stop_delay, timestamp) %>% 
-  group_by(tech_id, stop_code) %>% 
-  slice_max(timestamp) %>% 
-  distinct() %>% 
-  ungroup(tech_id, stop_code) %>% 
-  full_join(train_schedules, by = c("tech_id", "stop_name" = "schedule_stop_name")) %>% 
-  select(line, tech_id, stop_name, stop_delay, schedule_stop_departure_time, timestamp) -> train_data
-
-
-write_csv(train_data, "data/train_consolidated_data.csv", append = TRUE, col_names = TRUE)
-write_csv(train_tracking, "data/train_tracking_data.csv", append = TRUE, col_names = TRUE)
-write_csv(train_schedules, "data/train_schedules_data.csv", append = TRUE, col_names = TRUE)
 

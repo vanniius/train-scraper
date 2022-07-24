@@ -24,12 +24,19 @@ jobs:
         R -e 'install.packages("httr")'
         R -e 'install.packages("xml2")'
         R -e 'install.packages("lubridate")'
+        R -e 'install.packages("RPostgres")'
+    
     # Run R script
     - name: Scrape trains
     
       env: 
         URL_DEPARTURES: ${{ secrets.URL_DEPARTURES }}
         URL_SCHEDULES: ${{ secrets.URL_SCHEDULES }}
+        TRAIN_DBNAME: ${{ secrets.TRAIN_DBNAME }}
+        TRAIN_HOST: ${{ secrets.TRAIN_HOST }}
+        TRAIN_PORT: ${{ secrets.TRAIN_PORT }}
+        TRAIN_USER: ${{ secrets.TRAIN_USER }}
+        TRAIN_PWD: ${{ secrets.TRAIN_PWD }}
         
       run: Rscript Scrape_real_time.R
 
