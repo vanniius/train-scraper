@@ -52,7 +52,8 @@ schedule_tracking <-
     schedule_stop_code = NA,
     schedule_stop_name = NA,
     schedule_stop_arrival_time = NA,
-    schedule_stop_departure_time = NA
+    schedule_stop_departure_time = NA,
+    schedule_timestamp = NA
   )
 
 train_schedules <-
@@ -69,18 +70,19 @@ train_schedules <-
     schedule_stop_code = NA,
     schedule_stop_name = NA,
     schedule_stop_arrival_time = NA,
-    schedule_stop_departure_time = NA
+    schedule_stop_departure_time = NA,
+    schedule_timestamp = NA
   )
 
 ### Execution time, in minutes
-period <- 240
+period <- 5
 tm <- Sys.time()
 
 ### Real time train scraper
 
 while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
   
-  print(paste0("Start: ", format(Sys.time(), "%H:%M:%S")))
+  print(paste0("Iteration start: ", format(Sys.time(), "%H:%M:%S")))
   
   ### Scraping trains by next hour arrivals and departures by station
   
@@ -106,7 +108,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     
     if(length(scrape_station$tech_id > 1)) {
       
-      union(scrape_station, train_tracking) ->> train_tracking
+      union(scrape_station, train_tracking) -> train_tracking
       
     }
     
@@ -134,28 +136,62 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
                  schedule_stop_code = paste0("", possibly(xml_text, otherwise = NA) (html_elements(page,"stationCode"))),
                  schedule_stop_name = paste0("", possibly(xml_text, otherwise = NA) (html_elements(page,"stationName"))),
                  schedule_stop_arrival_time = paste0("", possibly(xml_text, otherwise = NA) (html_elements(page,"arrivalDateHour"))),
-                 schedule_stop_departure_time = paste0("", possibly(xml_text, otherwise = NA) (html_elements(page,"departureDateHour")))
+                 schedule_stop_departure_time = paste0("", possibly(xml_text, otherwise = NA) (html_elements(page,"departureDateHour"))),
+                 schedule_timestamp = paste0("", possibly(xml_text, otherwise = NA) (html_elements(page,"timestamp")))
                  
       )
       
       
-    }) ->> schedule_tracking
+    }) -> schedule_tracking
     
     schedule_tracking %>% 
       mutate_all(na_if, "") %>% 
       drop_na(tech_id) -> schedule_tracking
     
-    # Adding new retrieved schedules to the registry
+    # Adding new retrieved schedules to the registry and into DB
     
     if(length(schedule_tracking$tech_id > 1)) {
       
-      union(schedule_tracking, train_schedules) ->> train_schedules
+      union(schedule_tracking, train_schedules) -> train_schedules
+      
+      con <- dbConnect(RPostgres::Postgres(),
+                       dbname = Sys.getenv("TRAIN_DBNAME"),
+                       host = Sys.getenv("TRAIN_HOST"), 
+                       port = Sys.getenv("TRAIN_PORT"),
+                       user = Sys.getenv("TRAIN_USER"), 
+                       password = Sys.getenv("TRAIN_PWD"))
+      
+      dbWriteTable(con, name = "train_schedules", value = schedule_tracking, append = TRUE, row.names = FALSE)
+      
+      dbDisconnect(con)
+      
+      ### Reset df
+      
+      schedule_tracking <-
+        data.frame(
+          line = NA,
+          tech_id = NA,
+          com_id = NA,
+          schedule_origin_code = NA,
+          schedule_destination_code = NA,
+          schedule_origin_name = NA,
+          schedule_destination_name = NA,
+          schedule_origin_departure_time = NA,
+          schedule_destination_arrival_time = NA,
+          schedule_stop_code = NA,
+          schedule_stop_name = NA,
+          schedule_stop_arrival_time = NA,
+          schedule_stop_departure_time = NA,
+          schedule_timestamp = NA
+        )
+      
       
     }
     
+    
   }
   
-  ### Write data to DB
+  ### Write tracking data to DB
   
   con <- dbConnect(RPostgres::Postgres(),
                    dbname = Sys.getenv("TRAIN_DBNAME"),
@@ -165,13 +201,12 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
                    password = Sys.getenv("TRAIN_PWD"))
   
   dbWriteTable(con, name = "train_tracking", value = train_tracking, append = TRUE, row.names = FALSE)
-  dbWriteTable(con, name = "train_schedules", value = train_schedules, append = TRUE, row.names = FALSE)
   
   dbDisconnect(con)
   
-  print(paste0("End: ", format(Sys.time(), "%H:%M:%S")))
+  print(paste0("Iteration end: ", format(Sys.time(), "%H:%M:%S")))
   
-  Sys.sleep(240)
+  Sys.sleep(24)
   
 }
 
