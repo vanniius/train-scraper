@@ -3,8 +3,8 @@ name: train_tracking
 
 # Controls when the action will run.
 on:
-  push:
-    branches: main
+  schedule:
+    - cron: '0 2,6,10,14,18 * * *'
 
 jobs:
   autoscrape:
@@ -40,14 +40,3 @@ jobs:
         
       run: Rscript Scrape_real_time.R
 
-    # Add new files in data folder, commit along with other modified files, push
-    - name: Commit files
-      run: |
-        git config --local user.name github-actions
-        git config --local user.email "actions@github.com"
-        git add data/*
-        git commit -am "GH ACTION Autorun $(date)"
-        git push origin main
-      env:
-        REPO_KEY: ${{secrets.GITHUB_TOKEN}}
-        username: github-actions

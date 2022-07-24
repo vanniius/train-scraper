@@ -73,7 +73,7 @@ train_schedules <-
   )
 
 ### Execution time, in minutes
-period <- 15
+period <- 240
 tm <- Sys.time()
 
 ### Real time train scraper
