@@ -10,6 +10,14 @@ require(RPostgres)
 url_departures <- Sys.getenv("URL_DEPARTURES")
 url_schedules  <- Sys.getenv("URL_SCHEDULES")
 
+### Database connection
+con <- dbConnect(RPostgres::Postgres(),
+                 dbname = Sys.getenv("TRAIN_DBNAME"),
+                 host = Sys.getenv("TRAIN_HOST"), 
+                 port = Sys.getenv("TRAIN_PORT"),
+                 user = Sys.getenv("TRAIN_USER"), 
+                 password = Sys.getenv("TRAIN_PWD"))
+
 ### Stations to track
 stations <- c(79312, 79309, 79303, 79300, 79202, 79607, 79605, 79602, 79502, 79412, 79406, 71801, 79103, 79007, 79009, 71707, 
               71706, 71701, 71601, 77309, 77306, 77113, 77105, 77005, 78801, 78604, 78710, 78706, 72301, 72211, 72201, 71401, 
@@ -156,13 +164,6 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
         
         union(schedule_tracking, train_schedules) -> train_schedules
         
-        con <- dbConnect(RPostgres::Postgres(),
-                         dbname = Sys.getenv("TRAIN_DBNAME"),
-                         host = Sys.getenv("TRAIN_HOST"), 
-                         port = Sys.getenv("TRAIN_PORT"),
-                         user = Sys.getenv("TRAIN_USER"), 
-                         password = Sys.getenv("TRAIN_PWD"))
-        
         dbWriteTable(con, name = "train_schedules", value = schedule_tracking, append = TRUE, row.names = FALSE)
         
         dbDisconnect(con)
@@ -194,14 +195,6 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     }
     
     ### Write tracking data to DB
-    
-    con <- dbConnect(RPostgres::Postgres(),
-                     dbname = Sys.getenv("TRAIN_DBNAME"),
-                     host = Sys.getenv("TRAIN_HOST"), 
-                     port = Sys.getenv("TRAIN_PORT"),
-                     user = Sys.getenv("TRAIN_USER"), 
-                     password = Sys.getenv("TRAIN_PWD"))
-    
     dbWriteTable(con, name = "train_tracking", value = train_tracking, append = TRUE, row.names = FALSE)
     
     dbDisconnect(con)
@@ -223,3 +216,18 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
   
   }
 
+### Consolidate database
+dbGetQuery(con, "SELECT * FROM train_tracking;") -> train_tracking
+
+train_tracking %>% 
+  mutate(track_timestamp = dmy_hms(timestamp),
+         track_day = floor_date(track_timestamp, "day")) %>% 
+  group_by(tech_id, stop_name, stop_delay, timestamp) %>% 
+  distinct() %>% 
+  select(-track_day, -track_timestamp) -> train_tracking
+
+dbExecute(con, "DELETE FROM train_tracking;")
+dbExecute(con, "VACUUM FULL train_tracking;")
+dbWriteTable(con, name = "train_tracking", value = train_tracking, append = TRUE, row.names = FALSE)
+
+dbDisconnect(con)
