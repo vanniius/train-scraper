@@ -75,7 +75,7 @@ train_schedules <-
   )
 
 ### Execution time, in minutes
-period <- 240
+period <- 2
 tm <- Sys.time()
 
 ### Real time train scraper
@@ -85,7 +85,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
   try({
     
     print(paste0("Iteration start: ", format(Sys.time(), "%H:%M:%S")))
-  
+    
     ### Scraping trains by next hour arrivals and departures by station
     
     for(i in 1:length(stations)) {
@@ -100,11 +100,13 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
                  timestamp = paste0("", possibly(xml_text, otherwise = NA) (html_elements(page,"timestamp")))
                  
       ) -> scrape_station
-    
+      
       
       scrape_station %>% 
         mutate_all(na_if, "") %>% 
-        drop_na(tech_id) -> scrape_station
+        drop_na(tech_id) %>%
+        mutate(stop_delay = as.numeric(stop_delay),
+               timestamp = dmy_hms(timestamp)) -> scrape_station
       
       ### Adding results to the tracking registry
       
@@ -148,7 +150,12 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
       
       schedule_tracking %>% 
         mutate_all(na_if, "") %>% 
-        drop_na(tech_id) -> schedule_tracking
+        drop_na(tech_id) %>% 
+        mutate(schedule_origin_departure_time = dmy_hms(schedule_origin_departure_time),
+               schedule_stop_arrival_time = dmy_hms(schedule_stop_arrival_time),
+               schedule_stop_departure_time = dmy_hms(schedule_stop_departure_time),
+               schedule_destination_arrival_time = dmy_hms(schedule_destination_arrival_time),
+               schedule_timestamp = dmy_hms(schedule_timestamp)) -> schedule_tracking
       
       # Adding new retrieved schedules to the registry and into DB
       
@@ -210,7 +217,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     
     if(hour(Sys.time()) %in% 2:21) {
       
-      Sys.sleep(240)
+      Sys.sleep(2)
       
       
     } else {
@@ -221,7 +228,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     
   })
   
-  }
+}
 
 ### Consolidate database
 con <- dbConnect(RPostgres::Postgres(),
