@@ -200,6 +200,15 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
       
     }
     
+    ### Consolidate tracking data
+    
+    train_tracking %>% 
+      mutate(track_timestamp = dmy_hms(timestamp),
+             track_day = floor_date(track_timestamp, "day")) %>% 
+      group_by(tech_id, stop_name, stop_delay, timestamp) %>% 
+      distinct() %>% 
+      select(-track_day, -track_timestamp) -> train_tracking
+    
     ### Write tracking data to DB
     
     con <- dbConnect(RPostgres::Postgres(),
@@ -215,6 +224,9 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     
     print(paste0("Iteration end: ", format(Sys.time(), "%H:%M:%S")))
     
+    
+    ### Evaluate time until next iteration
+    
     if(hour(Sys.time()) %in% 2:21) {
       
       Sys.sleep(2)
@@ -229,26 +241,3 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
   })
   
 }
-
-### Consolidate database
-con <- dbConnect(RPostgres::Postgres(),
-                 dbname = Sys.getenv("TRAIN_DBNAME"),
-                 host = Sys.getenv("TRAIN_HOST"), 
-                 port = Sys.getenv("TRAIN_PORT"),
-                 user = Sys.getenv("TRAIN_USER"), 
-                 password = Sys.getenv("TRAIN_PWD"))
-
-dbGetQuery(con, "SELECT * FROM train_tracking;") -> train_tracking
-
-train_tracking %>% 
-  mutate(track_timestamp = dmy_hms(timestamp),
-         track_day = floor_date(track_timestamp, "day")) %>% 
-  group_by(tech_id, stop_name, stop_delay, timestamp) %>% 
-  distinct() %>% 
-  select(-track_day, -track_timestamp) -> train_tracking
-
-dbExecute(con, "DELETE FROM train_tracking;")
-dbExecute(con, "VACUUM FULL train_tracking;")
-dbWriteTable(con, name = "train_tracking", value = train_tracking, append = TRUE, row.names = FALSE)
-
-dbDisconnect(con)
