@@ -75,7 +75,7 @@ train_schedules <-
   )
 
 ### Execution time, in minutes
-period <- 2
+period <- 240
 tm <- Sys.time()
 
 ### Real time train scraper
@@ -229,7 +229,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     
     if(hour(Sys.time()) %in% 2:21) {
       
-      Sys.sleep(2)
+      Sys.sleep(240)
       
       
     } else {
