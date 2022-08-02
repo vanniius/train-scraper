@@ -74,8 +74,10 @@ train_schedules <-
     schedule_timestamp = NA
   )
 
+iteration_time <- format(Sys.time(), tz = "Europe/Andorra")
+
 ### Execution time, in minutes
-period <- 2
+period <- 240
 tm <- Sys.time()
 
 ### Real time train scraper
@@ -201,16 +203,18 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     }
     
     ### Consolidate tracking data
-    
     train_tracking %>% 
-      mutate(track_timestamp = dmy_hms(timestamp),
-             track_day = floor_date(track_timestamp, "day")) %>% 
+      mutate(track_day = floor_date(timestamp, "day")) %>% 
       group_by(tech_id, stop_name, stop_delay, timestamp) %>% 
-      distinct() %>% 
-      select(-track_day, -track_timestamp) -> train_tracking
+      distinct() %>%
+      ungroup() %>% 
+      select(-track_day) -> train_tracking
+    
+    ### Subset only last tracked data
+    train_tracking %>% 
+      filter(timestamp > ymd_hms(iteration_time)) -> new_tracking
     
     ### Write tracking data to DB
-    
     con <- dbConnect(RPostgres::Postgres(),
                      dbname = Sys.getenv("TRAIN_DBNAME"),
                      host = Sys.getenv("TRAIN_HOST"), 
@@ -218,18 +222,19 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
                      user = Sys.getenv("TRAIN_USER"), 
                      password = Sys.getenv("TRAIN_PWD"))
     
-    dbWriteTable(con, name = "train_tracking", value = train_tracking, append = TRUE, row.names = FALSE)
+    dbWriteTable(con, name = "train_tracking", value = new_tracking, append = TRUE, row.names = FALSE)
     
     dbDisconnect(con)
     
-    print(paste0("Iteration end: ", format(Sys.time(), "%H:%M:%S")))
+    iteration_time <- format(Sys.time(), tz = "Europe/Andorra")
     
+    print(paste0("Iteration end: ", format(Sys.time(), "%H:%M:%S")))
     
     ### Evaluate time until next iteration
     
     if(hour(Sys.time()) %in% 2:21) {
       
-      Sys.sleep(2)
+      Sys.sleep(240)
       
       
     } else {
