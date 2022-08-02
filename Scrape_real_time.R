@@ -203,6 +203,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     }
     
     ### Consolidate tracking data
+    
     train_tracking %>% 
       mutate(track_day = floor_date(timestamp, "day")) %>% 
       group_by(tech_id, stop_name, stop_delay, timestamp) %>% 
@@ -211,10 +212,12 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
       select(-track_day) -> train_tracking
     
     ### Subset only last tracked data
+    
     train_tracking %>% 
       filter(timestamp > ymd_hms(iteration_time)) -> new_tracking
     
     ### Write tracking data to DB
+    
     con <- dbConnect(RPostgres::Postgres(),
                      dbname = Sys.getenv("TRAIN_DBNAME"),
                      host = Sys.getenv("TRAIN_HOST"), 
