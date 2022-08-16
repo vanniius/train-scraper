@@ -1,0 +1,40 @@
+# Train data scrape
+name: train_data
+
+# Controls when the action will run.
+on:
+  schedule:
+    - cron: '25 9,13,17,20,21 * * *'
+
+jobs:
+  autoscrape:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+
+    # Load repo and install R
+    steps:
+    - uses: actions/checkout@master
+    - uses: r-lib/actions/setup-r@master
+
+    # Set-up R
+    - name: Install packages
+      run: |
+        R -e 'install.packages("tidyverse")'
+        R -e 'install.packages("rvest")'
+        R -e 'install.packages("httr")'
+        R -e 'install.packages("xml2")'
+        R -e 'install.packages("lubridate")'
+        R -e 'install.packages("RPostgres")'
+    
+    # Run R script
+    - name: Scrape train data
+    
+      env: 
+        URL_SCHEDULES: ${{ secrets.URL_SCHEDULES }}
+        TRAIN_DBNAME: ${{ secrets.TRAIN_DBNAME }}
+        TRAIN_HOST: ${{ secrets.TRAIN_HOST }}
+        TRAIN_PORT: ${{ secrets.TRAIN_PORT }}
+        TRAIN_USER: ${{ secrets.TRAIN_USER }}
+        TRAIN_PWD: ${{ secrets.TRAIN_PWD }}
+        
+      run: Rscript Scrape_train_data.R
