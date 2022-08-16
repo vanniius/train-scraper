@@ -17,6 +17,7 @@ con <- dbConnect(RPostgres::Postgres(),
                  password = Sys.getenv("TRAIN_PWD"))
 
 date <- paste0(format(Sys.Date(), tz = "Europe/Andorra"))
+time <- paste0(format(Sys.time(), tz = "Europe/Andorra"))
 
 ### Get today schedules
 query <- paste0("SELECT * 
@@ -36,7 +37,7 @@ if(hour(Sys.time()) %in% 0:20) {
   
   train_schedules %>% 
     filter(!tech_id %in% train_data$tech_id,
-           Sys.time() > schedule_destination_arrival_time + minutes(150)) -> trains_to_scrape
+           ymd_hms(time) > schedule_destination_arrival_time + minutes(150)) -> trains_to_scrape
   
 } else {
   
