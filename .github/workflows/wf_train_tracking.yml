@@ -38,5 +38,5 @@ jobs:
         TRAIN_USER: ${{ secrets.TRAIN_USER }}
         TRAIN_PWD: ${{ secrets.TRAIN_PWD }}
         
-      run: Rscript Scrape_real_time.R
+      run: Rscript scripts/scrapers/scrape_real_time.R
 
