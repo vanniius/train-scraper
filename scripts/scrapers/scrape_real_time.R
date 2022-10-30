@@ -235,7 +235,7 @@ while(difftime(Sys.time(), tm, units = "mins")[[1]] < period) {
     
     ### Evaluate time until next iteration
     
-    if(hour(Sys.time()) %in% 2:21) {
+    if(hour(Sys.time()) %in% 3:22) {
       
       Sys.sleep(240)
       
