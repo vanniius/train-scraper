@@ -1,11 +1,11 @@
 ---
-format: 
-  html:
-    toc: true
-editor: visual
+title: "Analysing train service data"
+output:
+  html_document: 
+    toc: yes
+    toc_float: yes
+    theme: lumen
 ---
-
-# Analysing train service data
 
 The data that will be used for this preliminary analysis contains relevant information about Catalan railway system operation, such as train schedules or tracking data about commuter and regional trains run by RENFE in Catalonia. Therefore, this data excludes high-speed trains and other railway service providers like FGC.
 
@@ -23,11 +23,9 @@ The present data have been previously scraped automatically employing a self-wri
 
 ## Database structure
 
-As seen below, the database that will be used contains 5 relational tables conforming a star schema. These tables include basic train data, schedule and tracking data for every scraped train as well as complementary information contained in stations and date tables.
+As seen below, the database that will be used contains 5 relational tables conforming a star schema. These tables include basic train data, schedule and tracking data for every scraped train as well as complementary information contained in stations and date tables. Train data table includes, among others:
 
-![](images/data_model-02.png)
-
-Train data table includes, among others:
+![](images/data_model.png)
 
 -   **id_key**: composed unique key for every scraped train, obtained by concatenating the date_key value and the technical and commercial train ids.
 
@@ -101,7 +99,7 @@ This said, in this first stage I'll be adding three new measures using the exist
 
 -   **service_type**, which according to which train line a train is assigned will classify them as 'Commuter' or 'Regional'.
 
--   **is_delay**, which taking the observed delay at the end of the journey and the service type will assign a boolean true/false value. More than 3 minutes delay at destination is considered the threshold for commuter trains, which goes up to 5 minutes for regional trains. The criterion used to establish which trains are effectively considered delayed or not is the same as that used by Renfe \[[See here](https://rodalies.gencat.cat/ca/sobre-rodalies/que-son-rodalies-de-catalunya/index.html)\]
+-   **is_delay**, which taking the observed delay at the end of the journey and the service type will assign a boolean true/false value. More than 3 minutes delay at destination is considered the threshold for commuter trains, which goes up to 5 minutes for regional trains. The criterion used to establish which trains are effectively considered delayed or not is the same as that used by Renfe [[See here](https://rodalies.gencat.cat/ca/sobre-rodalies/que-son-rodalies-de-catalunya/index.html)]
 
 -   **is_cancelled**, recoded measure as it's distinguishable from is_disabled. When is_disabled is true, is_cancelled also turns true to make the analysis easier.
 
