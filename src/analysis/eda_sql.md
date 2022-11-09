@@ -76,7 +76,8 @@ To test these feelings about Renfe's service in Catalonia I will take a first gl
 
 ### Connecting to local database
 
-```{r, message = FALSE, warning=FALSE}
+
+```r
 # Libraries
 require(RPostgres)
 require(DT)
@@ -89,7 +90,6 @@ con <- dbConnect(RPostgres::Postgres(),
                  port = "5432", 
                  user = Sys.getenv("TRAIN_LOCALDB_USER"), 
                  password = Sys.getenv("TRAIN_LOCALPWD"))
-
 ```
 
 ### A first dive into the data
@@ -104,7 +104,8 @@ This said, in this first stage I'll be adding three new measures using the exist
 
 -   **is_cancelled**, recoded measure as it's distinguishable from is_disabled. When is_disabled is true, is_cancelled also turns true to make the analysis easier.
 
-```{sql, connection = "con"}
+
+```sql
 WITH service_type_cte AS (
   SELECT
     id_key,
@@ -153,7 +154,8 @@ WHERE data_timestamp <= '2022-10-30 23:59:00';
 
 This done, I've queried this table to obtain some basic general statistics on the data. As there seems to be negative delays at destination, some of them extreme and improbable (up to -1440 minutes), I also have calculated an extra measure named 'adjusted_delay' to verify the impact of this outliers over the data, as it can be seen below.
 
-```{sql, connection = "con"}
+
+```sql
 WITH adjusted_delay_cte AS (
 SELECT
   id_key,
@@ -193,30 +195,18 @@ From the calculated measures it's possible to infer that:
 
 -   Finally, most commuter trains (78.8%) are labelled as accessible for people with mobility issues, while only 30.5% regional trains are.
 
-```{r, echo= FALSE}
-tbl_1_general_stats <- dbGetQuery(con, "SELECT * FROM general_stats")
 
-tbl_1_general_stats %>% 
-  datatable(caption = "Table 1. Main indicators, split by service type",
-            rownames = FALSE, 
-            options = list(dom = 't'), 
-            colnames=c("Service type", 
-                       "Total trains", 
-                       "Min delay", 
-                       "Max delay", 
-                       "Avg delay", 
-                       "Avg adjusted delay",
-                       "Median delay", 
-                       "Pct delayed", 
-                       "Pct cancelled", 
-                       "Pct accessible"))
+```{=html}
+<div id="htmlwidget-3b8e79bfe930734335ab" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3b8e79bfe930734335ab">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 1. Main indicators, split by service type<\/caption>","data":[["Commuter","Regional"],[50195,8511],[-1440,-130],[262,323],[7.5,7.1],[7.7,7.3],[4,3],[55.9,31.9],[0.4,0.2],[78.8,30.5]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Service type<\/th>\n      <th>Total trains<\/th>\n      <th>Min delay<\/th>\n      <th>Max delay<\/th>\n      <th>Avg delay<\/th>\n      <th>Avg adjusted delay<\/th>\n      <th>Median delay<\/th>\n      <th>Pct delayed<\/th>\n      <th>Pct cancelled<\/th>\n      <th>Pct accessible<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 ### Delays distribution
 
 When looking at delays distribution is it possible to verify that most of these are minor delays, that is, that didn't arrive more than 5 minutes late at their destination. This way and according to this data, most commuter trains were punctual (19.6%) or experienced minor delays (37.5%), while about 23% of them experienced significant (11-15 minutes) or heavy delays (more than 15 minutes).
 
-```{sql, connection = "con"}
+
+```sql
 WITH delay_category_cte AS (
 SELECT
   id_key,
@@ -242,16 +232,14 @@ GROUP BY delay_category
 ORDER BY delay_category;
 ```
 
-```{r, echo= FALSE}
-tbl_2_delay_distribution_commuter <- dbGetQuery(con, "SELECT * FROM delay_distribution_commuter")
 
-tbl_2_delay_distribution_commuter %>% 
-  datatable(caption = "Table 2. Commuter trains: Main indicators by delay category.",
-            rownames = FALSE, 
-            options = list(dom = 't'))
+```{=html}
+<div id="htmlwidget-c242ba4dbf823ab9193f" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c242ba4dbf823ab9193f">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 2. Commuter trains: Main indicators by delay category.<\/caption>","data":[["1- Punctual","2- From 1 to 5 minutes","3- From 6 to 10 minutes","4- From 11 to 15 minutes","5- More than 15 minutes"],[19.6,37.5,19.9,10.1,12.8],[1.5,0.1,0.1,0,0.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>delay_category<\/th>\n      <th>pct_count<\/th>\n      <th>pct_cancelled<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","columnDefs":[{"className":"dt-right","targets":[1,2]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
-```{sql, connection = "con"}
+
+```sql
 WITH delay_category_cte AS (
 SELECT
   id_key,
@@ -281,13 +269,10 @@ The same can be said about regional trains, which generally perform slightly bet
 
 In addition, it is worth noting that most cancelled trains fall under the punctual category, regardless of whether they are classified as commuter trains or regional trains. This probably means that most cancelled trains did not even depart from the origin station.
 
-```{r, echo= FALSE}
-tbl_3_delay_distribution_regional <- dbGetQuery(con, "SELECT * FROM delay_distribution_regional")
 
-tbl_3_delay_distribution_regional %>% 
-  datatable(caption = "Table 3. Regional trains: Main indicators by delay category.",
-            rownames = FALSE, 
-            options = list(dom = 't'))
+```{=html}
+<div id="htmlwidget-797696d494952d0e4e0f" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-797696d494952d0e4e0f">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 3. Regional trains: Main indicators by delay category.<\/caption>","data":[["1- Punctual","2- From 1 to 5 minutes","3- From 6 to 10 minutes","4- From 11 to 15 minutes","5- More than 15 minutes"],[23,45.1,15.8,5.8,10.3],[0.5,0.1,0.1,0,0.1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>delay_category<\/th>\n      <th>pct_count<\/th>\n      <th>pct_cancelled<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","columnDefs":[{"className":"dt-right","targets":[1,2]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 ### Main metrics by time periods
@@ -296,7 +281,8 @@ tbl_3_delay_distribution_regional %>%
 
 Looking at the trend by week over the chosen metrics is it hard to spot any clear trend, despite it can be perceived a slight reduction on average delay at destination and on the percentage of delayed trains, both for commuter and regional trains.
 
-```{sql, connection = "con"}
+
+```sql
 SELECT
   month,
   week,
@@ -314,24 +300,14 @@ GROUP BY month, week
 ORDER BY week;
 ```
 
-```{r, echo= FALSE}
-tbl_4_general_stats_ev_com <- dbGetQuery(con, "SELECT * FROM general_stats_evolution_commuter")
 
-tbl_4_general_stats_ev_com %>% 
-  datatable(caption = "Table 4. Commuter trains: Main indicators evolution.",
-            rownames = FALSE,
-            colnames=c("Month",
-                        "Week",
-                        "Total trains",
-                        "Min delay",
-                        "Max delay",
-                        "Avg delay",
-                        "Median delay",
-                        "Pct delayed",
-                        "Pct cancelled"))
+```{=html}
+<div id="htmlwidget-b3ec34c9178b1df92f02" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b3ec34c9178b1df92f02">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 4. Commuter trains: Main indicators evolution.<\/caption>","data":[["August","August","August","September","September","September","September","October","September","October","October","October","October"],[33,34,35,35,36,37,38,39,39,40,41,42,43],[2430,4272,2119,2566,4789,4958,5415,1185,3891,3867,5092,4290,5321],[-1440,-24,-6,-48,-45,-4,-12,-9,-5,-30,-9,-6,-26],[259,205,262,179,244,159,173,68,128,87,59,67,243],[4,7,10.7,12.4,9.8,7.7,7.2,4.5,7.8,7.1,6.3,6.7,6.2],[3,4,5,6,5,5,5,3,4,5,4,4,4],[44.1,50.2,62.6,61.8,57.8,59.8,59.2,44.3,53.4,59.3,55.5,56.8,53.2],[0.2,0.2,1.1,1,0.5,0.5,0.1,0.1,0.2,0.3,0.5,0.3,0.3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Month<\/th>\n      <th>Week<\/th>\n      <th>Total trains<\/th>\n      <th>Min delay<\/th>\n      <th>Max delay<\/th>\n      <th>Avg delay<\/th>\n      <th>Median delay<\/th>\n      <th>Pct delayed<\/th>\n      <th>Pct cancelled<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
-```{sql, connection = "con"}
+
+```sql
 SELECT
   month,
   week,
@@ -349,28 +325,18 @@ GROUP BY month, week
 ORDER BY week;
 ```
 
-```{r, echo= FALSE}
-tbl_5_general_stats_ev_reg <- dbGetQuery(con, "SELECT * FROM general_stats_evolution_regional")
 
-tbl_5_general_stats_ev_reg %>% 
-  datatable(caption = "Table 5. Regional trains: Main indicators evolution.",
-            rownames = FALSE,
-            colnames=c("Month",
-                        "Week",
-                        "Total trains",
-                        "Min delay",
-                        "Max delay",
-                        "Avg delay",
-                        "Median delay",
-                        "Pct delayed",
-                        "Pct cancelled"))
+```{=html}
+<div id="htmlwidget-d6a856f9c8fe6954367b" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d6a856f9c8fe6954367b">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 5. Regional trains: Main indicators evolution.<\/caption>","data":[["August","August","August","September","September","September","September","October","September","October","October","October","October"],[33,34,35,35,36,37,38,39,39,40,41,42,43],[457,850,346,460,839,846,893,217,609,640,832,683,839],[-6,-130,-4,-6,-9,-7,-12,-5,-3,-5,-3,-4,-7],[323,104,122,133,220,151,161,74,150,108,64,102,136],[7.2,3.5,8.7,8.3,11.3,8.6,8.2,5,7.5,5.6,5,6.5,6.6],[2,2,3,4,3,3,3,2,3,3,3,3,3],[25.8,22.4,34.7,39.3,37.3,36.3,34.7,28.1,31.9,33.1,30.4,30.9,29.6],[0,0,0.6,0,0.4,0.1,0,0,0.3,0.2,0.1,0.3,0.2]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Month<\/th>\n      <th>Week<\/th>\n      <th>Total trains<\/th>\n      <th>Min delay<\/th>\n      <th>Max delay<\/th>\n      <th>Avg delay<\/th>\n      <th>Median delay<\/th>\n      <th>Pct delayed<\/th>\n      <th>Pct cancelled<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 #### Trend by day of the week
 
 Instead, when aggregating the data by day of the week, we see that trains that operate on weekdays tend to experience fewer delays. As shown in the table below, about 54-58% of the trains running on weekdays arrive late at their destination, compared to 37-41% of trains running on the weekend. This fact could be correlated with the traffic reduction that the railway network experiences on weekends, as also shown in the table.
 
-```{sql, connection = "con"}
+
+```sql
 SELECT 
   weekday,
   COUNT(*) AS total_trains,
@@ -385,11 +351,30 @@ GROUP BY weekday
 ORDER BY pct_delayed DESC;
 ```
 
+
+<div class="knitsql-table">
+
+
+Table: 7 records
+
+|weekday   | total_trains| avg_delay| median_delay| pct_delayed| pct_cancelled|
+|:---------|------------:|---------:|------------:|-----------:|-------------:|
+|Friday    |         9419|       9.9|            5|        58.9|           0.6|
+|Thursday  |         8676|       8.2|            5|        57.1|           0.3|
+|Monday    |         8785|       7.4|            5|        56.8|           0.3|
+|Tuesday   |        10215|       7.1|            4|        54.5|           0.4|
+|Wednesday |         7898|       8.3|            4|        54.1|           0.4|
+|Saturday  |         6816|       5.3|            3|        41.5|           0.2|
+|Sunday    |         6897|       4.8|            2|        37.9|           0.2|
+
+</div>
+
 #### Trend by hour of the day
 
 In the same way, when analysing the data by hour of the day, grouped by trains departure hour from the origin, it can be spotted how delays are higher during rush hours, when most trains are running, especially between 7am-9am and 6pm-8pm.
 
-```{sql, connection = "con"}
+
+```sql
 SELECT 
   EXTRACT(hour from actual_origin_departure_time) AS day_hour,
   COUNT(*) AS total_trains,
@@ -403,18 +388,10 @@ GROUP BY day_hour
 ORDER BY day_hour;
 ```
 
-```{r, echo=FALSE}
-tbl_5_stats_by_hour <- dbGetQuery(con, "SELECT * FROM stats_by_hour")
 
-tbl_5_stats_by_hour %>% 
-  datatable(caption = "Table 6. Delay metrics by train line",
-            rownames = FALSE,
-            colnames=c("Day hour",
-                       "Total trains",
-                       "Avg delay",
-                       "Median delay",
-                       "Pct delayed",
-                       "Pct cancelled"))
+```{=html}
+<div id="htmlwidget-598bea80b03e52cc14eb" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-598bea80b03e52cc14eb">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 6. Delay metrics by train line<\/caption>","data":[[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],[422,2219,3626,4187,3447,3215,3079,3239,2990,3278,3424,3624,3555,3535,3896,3596,3215,2708,1139,312],[6.2,7.1,7.1,8.1,7.9,7.2,6.5,7,7.1,7.1,6.9,7.3,7.2,7.8,8.6,9.3,8.5,6.4,4.7,1.1],[3,3,4,5,5,4,4,4,4,3,4,4,4,4,5,5,5,3,2,0],[37.7,45.6,49.8,59.6,59,51.8,52.1,49.3,51,47.5,52.3,52.7,51.5,54.4,57,59.5,57.4,45.1,35.6,11.9],[1.2,0.2,0.3,0.5,0.1,0.4,0.3,0.2,0.2,0.4,0.6,0.4,0.4,0.5,0.6,0.3,0.3,0.2,0,0]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Day hour<\/th>\n      <th>Total trains<\/th>\n      <th>Avg delay<\/th>\n      <th>Median delay<\/th>\n      <th>Pct delayed<\/th>\n      <th>Pct cancelled<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[0,1,2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 ### Main metrics by train line
@@ -423,7 +400,8 @@ Focussing on the differences between train lines, it can be seen how commuter li
 
 A deeper look at the data reveals an interesting fact: most best-performing regional lines, like the R16 and R14 lines, goes totally or partially by the so-called south corridor, which connects Barcelona with southern and west Catalonia. In fact, the R2 line, which was the best-performing commuter line, also partially runs through this corridor, while their northern counterparts tend to experience more delays.
 
-```{sql, connection = "con"}
+
+```sql
 SELECT
 	line,
 	service_type,
@@ -435,23 +413,18 @@ FROM basic_data
 	ORDER BY pct_delayed DESC;
 ```
 
-```{r, echo=FALSE}
-tbl_6_line_stats <- dbGetQuery(con, "SELECT * FROM stats_by_line")
 
-tbl_6_line_stats %>% 
-  datatable(caption = "Table 7. Delay metrics by train line",
-            rownames = FALSE,
-            colnames=c("Line",
-                       "Service type",
-                       "Total trains",
-                       "Pct delayed"))
+```{=html}
+<div id="htmlwidget-cc08c89e39ebf29de1b8" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-cc08c89e39ebf29de1b8">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 7. Delay metrics by train line<\/caption>","data":[["RT2","R4","R3","RG1","R7","R8","R1","R12","R13","R2","R11","MD","R17","R15","R14","R16"],["Commuter","Commuter","Commuter","Commuter","Commuter","Commuter","Commuter","Regional","Regional","Commuter","Regional","Regional","Regional","Regional","Regional","Regional"],[488,9308,4826,421,3401,2227,11587,423,419,17937,3056,556,588,1577,633,1259],[87.5,76.5,73.4,69.8,63.3,53.3,50.2,49.9,47.3,41.9,33.7,32.6,31.3,28.1,26.7,24]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Line<\/th>\n      <th>Service type<\/th>\n      <th>Total trains<\/th>\n      <th>Pct delayed<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 ### Delay by journey time
 
 As shown below, when calculating the journey time it's possible to observe some anomalous data, from extremely long journey times to negative values. As it happened before with some delay values, it is likely the existence of some inconsistencies on the scraped data, something which will be handled later when doing a proper deep data cleaning.
 
-```{sql, connection = "con"}
+
+```sql
 WITH journey_time_cte AS (
 SELECT
   id_key,
@@ -469,9 +442,23 @@ FROM basic_data
 GROUP BY service_type;
 ```
 
+
+<div class="knitsql-table">
+
+
+Table: 2 records
+
+|service_type | max_journey_time| min_journey_time| avg_journey_time|
+|:------------|----------------:|----------------:|----------------:|
+|Regional     |              656|             -548|              156|
+|Commuter     |             4308|            -3072|               76|
+
+</div>
+
 Aggregating delay measures by journey time shows that middle-range commuter and regional trains perform better than those that do shorter or longer journeys. This way, commuter trains with journey times compressed between 30 and 119 minutes (\~2 hours) perform better, especially when compared with those that exceed those 2 hours journey times.
 
-```{sql, connection = "con"}
+
+```sql
 WITH journey_time_cte AS (
 SELECT
   id_key,
@@ -507,22 +494,16 @@ GROUP BY journey_time_range
 ORDER BY journey_time_range;
 ```
 
-```{r, echo=FALSE}
-tbl_7_delay_journey_time_commuter <- dbGetQuery(con, "SELECT * FROM delay_by_journey_time_commuter")
 
-tbl_7_delay_journey_time_commuter %>% 
-  datatable(caption = "Table 8. Commuter trains: Delay metrics by journey time",
-            rownames = FALSE,
-            colnames=c("Journey time",
-                       "Total trains",
-                       "Pct delayed",
-                       "Avg delay",
-                       "Median delay"))
+```{=html}
+<div id="htmlwidget-744e898bbd6f91268fe5" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-744e898bbd6f91268fe5">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 8. Commuter trains: Delay metrics by journey time<\/caption>","data":[["1- From 0 to 29 minutes","2- From 30 to 59 minutes","3- From 60 to 119 minutes","4- From 120 to 179 minutes","5- More than 180 minutes"],[4051,15400,23313,5724,1342],[58.5,44.9,56.3,78,72],[6.1,4.7,7.7,14.1,8.3],[4,3,4,11,8]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Journey time<\/th>\n      <th>Total trains<\/th>\n      <th>Pct delayed<\/th>\n      <th>Avg delay<\/th>\n      <th>Median delay<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 The same applies to regional trains. Those who fall inside the middle range, between 120 and 179 minutes (\~3 hours), have significantly better performance on delay metrics than those who don't.
 
-```{sql, connection = "con"}
+
+```sql
 WITH journey_time_cte AS (
 SELECT
   id_key,
@@ -558,24 +539,18 @@ GROUP BY journey_time_range
 ORDER BY journey_time_range;
 ```
 
-```{r, echo=FALSE}
-tbl_8_delay_journey_time_regional <- dbGetQuery(con, "SELECT * FROM delay_by_journey_time_regional")
 
-tbl_8_delay_journey_time_regional %>% 
-  datatable(caption = "Table 9. Regional trains: Delay metrics by journey time",
-            rownames = FALSE,
-            colnames=c("Journey time",
-                       "Total trains",
-                       "Pct delayed",
-                       "Avg delay",
-                       "Median delay"))
+```{=html}
+<div id="htmlwidget-1526dc518037071485cc" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1526dc518037071485cc">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 9. Regional trains: Delay metrics by journey time<\/caption>","data":[["1- From 0 to 59 minutes","2- From 60 to 119 minutes","3- From 120 to 179 minutes","4- From 180 to 239 minutes","5- More than 239 minutes"],[163,2839,3385,1692,419],[55.8,34.5,26.7,33.8,39.4],[14.1,7.5,5.9,7.4,9.1],[8,3,2,3,4]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Journey time<\/th>\n      <th>Total trains<\/th>\n      <th>Pct delayed<\/th>\n      <th>Avg delay<\/th>\n      <th>Median delay<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 ### Delay by number of stops
 
 Finally, in terms of the relationship between the number of stops made by a train and the delay measures, we can say that, for commuter trains, the more stops made, the longer the delays are and the higher the percentage of trains arriving late at their destinations is. This way, while 44-48% of those trains making less than 20 stops arrived late, with an average \~5 minutes delay, the figures for those exceeding this threshold increased up to 67-78% when it comes to the percentage of delayed trains, as well as doubling the average delay.
 
-```{sql, connection = "con"}
+
+```sql
 WITH stop_count_cte AS(
 SELECT
   id_key,
@@ -605,22 +580,16 @@ GROUP BY stops_num
 ORDER BY stops_num;
 ```
 
-```{r, echo=FALSE}
-tbl_9_delay_by_stops_commuter <- dbGetQuery(con, "SELECT * FROM delay_by_stops_commuter")
 
-tbl_9_delay_by_stops_commuter %>% 
-  datatable(caption = "Table 10. Commuter trains: Delay metrics by number of stops",
-            rownames = FALSE,
-            colnames=c("Number of stops",
-                       "Total trains",
-                       "Pct delayed",
-                       "Avg delay",
-                       "Median delay"))
+```{=html}
+<div id="htmlwidget-4a9a9c6d496f6536fa82" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4a9a9c6d496f6536fa82">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 10. Commuter trains: Delay metrics by number of stops<\/caption>","data":[["1- Less than 10 stops","2- From 10 to 19 stops","3- From 20 to 29 stops","4- More than 29 stops"],[9321,19963,12401,8510],[47.5,43.9,66.5,77.8],[5.1,4.8,9.6,13.2],[3,3,6,10]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Number of stops<\/th>\n      <th>Total trains<\/th>\n      <th>Pct delayed<\/th>\n      <th>Avg delay<\/th>\n      <th>Median delay<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
 With regard to regional trains, despite this relationship doesn't come up to be as strong as it was with commuter trains, the trend is quite similar. Thus, whereas regional trains making less than 30 stops on average reached their destination late about 28-33% of the time with an average 6-7 minutes of delay, their counterparts that made more than 30 stops underperformed these metrics, as shown below.
 
-```{sql, connection = "con"}
+
+```sql
 WITH stop_count_cte AS(
 SELECT
   id_key,
@@ -650,35 +619,12 @@ GROUP BY stops_num
 ORDER BY stops_num;
 ```
 
-```{r, echo=FALSE}
-tbl_10_delay_by_stops_regional <- dbGetQuery(con, "SELECT * FROM delay_by_stops_regional")
 
-tbl_10_delay_by_stops_regional %>% 
-  datatable(caption = "Table 11. Regional trains: Delay metrics by number of stops",
-            rownames = FALSE,
-            colnames=c("Number of stops",
-                       "Total trains",
-                       "Pct delayed",
-                       "Avg delay",
-                       "Median delay"))
+```{=html}
+<div id="htmlwidget-09efd9b6dc4ecd386c3b" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-09efd9b6dc4ecd386c3b">{"x":{"filter":"none","vertical":false,"caption":"<caption>Table 11. Regional trains: Delay metrics by number of stops<\/caption>","data":[["1- Less than 10 stops","2- From 10 to 19 stops","3- From 20 to 29 stops","4- More than 29 stops"],[1300,4161,1980,1070],[33.3,27.6,33.7,43.9],[7.4,6.3,7.4,9.4],[3,2,3,5]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Number of stops<\/th>\n      <th>Total trains<\/th>\n      <th>Pct delayed<\/th>\n      <th>Avg delay<\/th>\n      <th>Median delay<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 ```
 
-```{sql, connection = "con", include = FALSE}
-DROP TABLE 
-  basic_data, 
-  general_stats,
-  delay_distribution_commuter,
-  delay_distribution_regional,
-  general_stats_evolution_commuter, 
-  general_stats_evolution_regional, 
-  stats_by_line, 
-  stats_by_hour,
-  delay_by_journey_time_commuter,
-  delay_by_journey_time_regional,
-  delay_by_stops_commuter,
-  delay_by_stops_regional;
-```
 
-```{r, include = FALSE}
-dbDisconnect(con)
-```
+
+
