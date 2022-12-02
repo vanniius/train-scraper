@@ -4,12 +4,12 @@ name: train_tracking
 # Controls when the action will run.
 on:
   schedule:
-    - cron: '50 23,2,7,11,15,19 * * *'
+    - cron: '50 1,4,8,12,16,20 * * *'
 
 jobs:
   autoscrape:
     # The type of runner that the job will run on
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     # Load repo and install R
     steps:
